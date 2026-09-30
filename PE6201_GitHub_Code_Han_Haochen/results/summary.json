@@ -1,0 +1,29 @@
+{
+  "keyword_baseline": {
+    "cases": 40,
+    "strict_accuracy": 0.25,
+    "coverage": 0.8,
+    "manual_review_rate": 0.2,
+    "selective_accuracy": 0.312,
+    "qualified_recall": 0.2,
+    "safe_review_recall": 0.6
+  },
+  "ai_matcher": {
+    "cases": 40,
+    "strict_accuracy": 0.75,
+    "coverage": 0.75,
+    "manual_review_rate": 0.25,
+    "selective_accuracy": 1.0,
+    "qualified_recall": 0.85,
+    "safe_review_recall": 1.0
+  },
+  "majority_baseline": {
+    "cases": 40,
+    "strict_accuracy": 0.5,
+    "coverage": 1.0,
+    "manual_review_rate": 0.0,
+    "selective_accuracy": 0.5,
+    "qualified_recall": 1.0,
+    "safe_review_recall": 1.0
+  }
+}
