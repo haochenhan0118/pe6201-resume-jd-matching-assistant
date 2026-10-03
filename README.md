@@ -168,10 +168,12 @@ shown to avoid presenting the observed result as if it had been the only target.
 - `results/` - predictions, metrics and evaluation report
 - `results/README.md` - evaluation design, metric definitions and commands
 - `docs/` - final problem statement, analysis and demo script
+- `demo/PE6201_Demo_Han_Haochen.mov` - final 5 minute 46 second project demonstration
 - `tests/` - automated checks for baseline, metrics and redaction
 - `prompt.txt` - versioned system prompt
 
 ## Submission documents
 - [`docs/PE6201_Final_Written_Submission_Han_Haochen.docx`](docs/PE6201_Final_Written_Submission_Han_Haochen.docx) - final three-page written submission with a 1,141-word body
+- [`demo/PE6201_Demo_Han_Haochen.mov`](demo/PE6201_Demo_Han_Haochen.mov) - final project demonstration video
 - [`data/README.md`](data/README.md) - dataset explainer
 - [`results/README.md`](results/README.md) - evaluation explainer
