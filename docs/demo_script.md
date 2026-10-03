@@ -1,6 +1,13 @@
 # Demo Video Script
 
-Suggested length: 4 to 5 minutes. The course does not specify a required duration or format.
+Target length: about 5 minutes. The permitted range is 2 to 8 minutes; only the
+first 8 minutes will be reviewed. Keep a webcam view of your face visible while
+also sharing the relevant GitHub and Streamlit screens. Speak precisely and do
+not display the `.env` file or API key.
+
+Before recording, test the OpenRouter call, close unrelated windows and
+notifications, enlarge the browser text, and keep the repository, application,
+and evaluation report open in separate tabs.
 
 ## 0 00 to 0 30 Introduction
 
@@ -65,4 +72,3 @@ Say:
 > The dataset is synthetic, small and limited to one role, so this result does not establish production hiring validity or fairness. The contribution is a complete reproducible comparison with privacy checks, abstention and explicit human control. The system is suitable for coursework demonstration only.
 
 End on the repository README and briefly show the commands used to install, test and run the project.
-
