@@ -173,7 +173,6 @@ shown to avoid presenting the observed result as if it had been the only target.
 
 ## Submission documents
 
-- [`docs/problem_statement.md`](docs/problem_statement.md) - final problem statement
-- [`docs/analysis.md`](docs/analysis.md) - final report and outcome critique
+- [`docs/PE6201_Final_Written_Submission_Han_Haochen.docx`](docs/PE6201_Final_Written_Submission_Han_Haochen.docx) - final 1,141-word written submission
 - [`data/README.md`](data/README.md) - dataset explainer
 - [`results/README.md`](results/README.md) - evaluation explainer
