@@ -1,55 +1,92 @@
 # Resume JD Matching and Human Review Assistant
 
-## Executive summary
+## What I built
 
-I built a decision-support prototype for a junior recruiter comparing one resume with one Junior Data Analyst job description. The system combines a transparent keyword baseline, local removal of common personal identifiers, and one structured foundation-model call. On 40 held-out synthetic cases, the LLM matcher achieved 75% strict accuracy, compared with 50% for the majority baseline and 25% for keyword overlap. It directly matched 17 of 20 qualified cases and routed the other three to manual review, so it did not directly reject a qualified test case. The result supports the value of semantic comparison on this controlled dataset, but it does not establish real-world hiring validity. The main constraints are synthetic data, author-created labels, one job family, and limited fairness testing.
+I built a Streamlit prototype that compares one resume with one Junior Data
+Analyst job description. My aim was not to replace a recruiter. I wanted to test
+whether an AI comparison could give a more useful first review than simple
+keyword matching.
 
-## Problem and intended difference
+The page has two paths. The keyword baseline looks for a fixed list of skills
+such as Python, SQL and Excel. It is easy to understand, but it cannot tell the
+difference between real experience and a sentence such as “no SQL experience.”
+The AI path uses GPT-4.1-mini through OpenRouter. It returns a score, label,
+strengths, gaps and evidence taken from the resume.
 
-The target user is Mei, a junior technology recruiter who reviews 40 to 60 resumes in a working day using ordinary office tools. Literal keyword matching is attractive because it is cheap and easy to explain, but it treats a word as evidence even when the resume says “no SQL experience” or simply copies a vacancy’s skill list. It can also miss relevant paraphrases such as “maintained relational queries” when a role requests SQL.
+Before the API call, the program removes a likely name, email address and phone
+number. The user can check the redacted text. Scores of 70 or above return
+MATCH, scores below 50 return NO_MATCH, and scores from 50 to 69 return
+MANUAL_REVIEW. I used this middle band because an uncertain answer should be
+checked by a person.
 
-The prototype changes the review experience in a limited but useful way. Instead of presenting only a similarity score, it separates strengths, gaps and supporting resume evidence, and it identifies ambiguous cases for human review. This could help a recruiter decide what to inspect next. I did not measure review time or hiring outcomes, so I cannot claim that the prototype reduces time-to-hire or improves workforce quality. Its demonstrated contribution is narrower: it produces a more discriminating review aid than literal overlap on the supplied test set.
+## Data and evaluation
 
-I excluded bulk resume processing, applicant-tracking-system integration, PDF parsing, external databases, RAG, agents, model training and automatic rejection. This scope allowed me to complete and test one end-to-end path rather than present several unfinished features.
+I created 60 synthetic cases for one job role. I used 20 while developing the
+project and kept 40 for the final test. The test set has 20 MATCH and 20
+NO_MATCH cases. It includes normal examples, different wording, missing
+evidence, negated skills, copied keywords and one prompt-injection attempt.
+Labels were fixed before either system was tested.
 
-## Product design and technical reasoning
+I compared three systems on the same 40 cases. The majority baseline always
+predicts MATCH. The keyword baseline uses literal skill overlap. The LLM matcher
+uses the structured model response. My main measure is strict accuracy, where a
+MANUAL_REVIEW result is counted as incorrect. I also measured how many
+qualified candidates received a direct match and how often a person still had
+to review the case.
 
-The user pastes one job description and one resume into a Streamlit interface. Deterministic regular expressions remove a likely name, email address and telephone number before any external request. The user can inspect the redacted version. The application then offers two comparisons.
+The majority baseline reached 50% accuracy because the test set is balanced.
+The keyword baseline reached only 25%. It often treated a skill word as proof
+even when the surrounding sentence showed no experience. The LLM matcher
+reached 75% strict accuracy and 85% qualified-candidate recall. It sent 10 of
+the 40 cases to manual review.
 
-The non-AI baseline extracts a fixed skill vocabulary and measures the proportion of job-description skills that also appear in the resume. It provides an auditable reference point and makes the semantic model earn its additional cost. The AI path sends the job description and redacted resume to `openai/gpt-4.1-mini` through OpenRouter. A fixed prompt treats both documents as untrusted data, prohibits protected-attribute inference, and requires evidence grounded in the resume. A Pydantic schema validates the returned score, label, strengths, gaps and evidence.
+The model directly matched 17 of the 20 qualified cases. The other three went
+to manual review, so no qualified test case received a direct NO_MATCH result.
+The model was correct on all 30 cases where it gave a definite answer. However,
+that 100% figure is based on a small synthetic sample and should not be treated
+as real hiring performance.
 
-Scores of 70 or above return `MATCH`, scores below 50 return `NO_MATCH`, and ambiguous cases return `MANUAL_REVIEW`. I treat manual review as abstention rather than a correct prediction. This prevents the model from improving its apparent accuracy by declining every difficult case. The interface, orchestration, prompt, baseline, redaction, dataset and evaluation are owned components; model inference is rented. One representative request used 383 input tokens and 71 output tokens and cost US$0.0002668. A single hosted call was therefore more proportionate than training or serving a model for this prototype.
+## What worked and what did not
 
-RAG would add retrieval infrastructure without a document collection. An agent would add latency and new failure modes to a one-step comparison. I therefore excluded both.
+The main improvement over keyword matching was context. The AI was better at
+handling paraphrases, negation and copied skill lists. Showing strengths, gaps
+and evidence also made the result easier to check than a single similarity
+score. The 75% accuracy met my final target, but it did not meet the original
+82% target in my proposal. I kept both figures in the project documentation
+instead of hiding the earlier target.
 
-## Data and evaluation method
+There are also clear weaknesses. A quarter of the test cases still needed
+manual review. This is acceptable for a support tool, but it limits how much
+work the system can save. I also did not measure review time, model latency or
+real hiring outcomes. The project shows that the workflow runs and that the AI
+performed better on my test set. It does not show that the tool improves hiring
+quality.
 
-I generated 60 synthetic resume and job-description pairs for one Junior Data Analyst role. Twenty cases form the development set and 40 form the held-out test set. The test set is balanced between `MATCH` and `NO_MATCH` and includes standard cases, semantic paraphrases, missing evidence, negated skills, keyword stuffing and one instruction-injection attempt. Scenario rules fix each label before either system runs. The generation script, prompt, cases and predictions are checked into the repository.
+## Difficulties and changes
 
-I compare three systems on the same 40 cases: an always-majority baseline, keyword overlap and the LLM matcher. Strict accuracy counts `MANUAL_REVIEW` as incorrect. Qualified-candidate recall measures how many true matches receive a direct match. Manual-review rate measures workload passed to a person. Selective accuracy measures accuracy only where the system gives a definite answer. These measures expose the trade-off between automation and caution better than a single accuracy figure.
+One problem was inconsistent model output. Early free-form answers used
+different labels and formats, so I changed the prompt and added a fixed output
+schema. Another problem was uncertainty. A simple yes-or-no threshold made weak
+cases look too confident, so I added the manual-review range and reported it as
+a separate metric.
 
-The evaluation remains vulnerable to author bias because I designed the scenarios, label rules and system. Repeated templates may make the test easier than real applications, and the balanced distribution is unlike many recruitment pipelines. The results are an internal functional evaluation, not an estimate of deployment performance.
+I also changed the provider setup to OpenRouter. The provider-specific code is
+kept inside the matcher module, so the main interface did not need to change.
+Local redaction was added because sending an unchanged resume would not match
+the responsible-use goal of the project.
 
-## Outcomes and performance critique
+## Limits and next step
 
-The majority baseline reached 50% strict accuracy because the test set is balanced. Its 100% qualified recall is operationally misleading: it labels every case as a match and therefore passes every unsuitable case to the recruiter. The keyword baseline reached 25% strict accuracy, 20% qualified recall, a 20% manual-review rate and 31.2% selective accuracy. It performed poorly because negation and copied terms were counted as positive evidence.
+The evaluation is small and was designed by me. The same person created the
+scenarios, labels and system, which may make the test easier than an independent
+evaluation. All resumes are synthetic, the cases cover only one job role, and
+the balanced test set is unlike many real applicant groups. The redaction rules
+can also miss unusual personal details. I did not test fairness across
+demographic groups.
 
-The LLM matcher reached 75% strict accuracy, 85% qualified recall and a 25% manual-review rate. It answered 30 cases definitively and achieved 100% selective accuracy on those cases. It directly identified 17 of 20 qualified cases and sent the remaining three to manual review. It also routed the prompt-injection case to manual review.
-
-The strongest result is the absence of a direct false rejection among qualified test cases when manual review is treated as a safe route. The main weakness is coverage: one quarter of cases still require a person. That is acceptable for decision support, but it limits automation. The 100% selective accuracy is also unstable because it is based on only 30 answered synthetic cases. A few new failures would move it sharply. The 75% headline accuracy meets the revised provisional target, but it falls below the original 82% proposal target. I report the observed result rather than hiding this difference.
-
-## Difficulties and tuning decisions
-
-The first difficulty was making model output dependable enough for an application. Free-form responses varied in labels and formatting, so I used a fixed schema and validation. The second was handling uncertainty. A binary threshold produced confident-looking answers for incomplete resumes, so I introduced the 50-to-69 manual-review band and reported its cost as a separate metric. The third was privacy. Sending raw resumes would conflict with the project’s responsible-use claim, so redaction runs locally and appears in the interface before the model call.
-
-I changed the provider path from a direct OpenAI configuration to OpenRouter while retaining the same structured comparison. Provider-specific setup remains inside `matcher.py`, so the interface and evaluation do not depend on the endpoint. One call and a concise schema reduce cost and latency. I did not conduct a formal latency benchmark, threshold sweep or multi-model comparison.
-
-## Risks rough edges and future path
-
-The most serious failure is a qualified candidate receiving a low score without detection. Abstention, evidence display and the prohibition on automatic rejection reduce this risk, but they do not eliminate bias or unsupported reasoning. Regular-expression redaction can miss unusual identifiers. The application has no authentication, audit log or demographic subgroup tests, which makes it unsuitable for real hiring.
-
-The next useful step is an externally labelled pilot dataset. Two recruiters should independently label de-identified resume-role pairs, resolve disagreements, and keep the final test set hidden during prompt development. I would then report precision, recall, false-rejection rate and manual-review workload by case type and relevant subgroups. A threshold sweep could show whether higher coverage is possible without introducing direct false rejections. Only after that evidence would PDF ingestion, stronger redaction, role-specific criteria, monitoring and applicant-tracking-system integration be worth considering.
-
-## Conclusion
-
-The project demonstrates a complete, reproducible comparison between literal matching and a constrained foundation-model component. Semantic matching performed better on the synthetic test, while abstention preserved human control over ambiguous cases. The result is useful as coursework evidence and as a basis for a better-labelled pilot. It is not evidence that the system should make employment decisions.
+The next useful step would be a small de-identified dataset labelled separately
+by two recruiters. They could compare labels and resolve disagreements before
+the final test. I would then check false-rejection rate, recall and manual-review
+workload across different case types. Until that work is done, the prototype
+should remain a classroom demonstration with a human making every final
+decision.

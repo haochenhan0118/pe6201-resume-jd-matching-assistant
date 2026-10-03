@@ -1,48 +1,53 @@
 # Project Problem Statement
 
-**Name:** Han Haochen  
-**Section:** C  
+**Name:** Han Haochen
+
+**Section:** C
+
 **Working title:** Resume JD Matching and Human Review Assistant
 
-## 1 Working title
+## Problem
 
-Resume JD Matching and Human Review Assistant
+A junior recruiter may review 40 to 60 resumes in one day. A simple keyword
+search is fast, but it can miss candidates who describe the same skill in
+different words. It can also give a high score to a resume that copies skill
+names without showing real experience. My project is a small tool that compares
+one resume with one job description and helps the recruiter decide what to
+review next. It does not make hiring or rejection decisions.
 
-## 2 The problem and why it matters
+## User and output
 
-In the target scenario, a junior recruiter in a technology company reviews 40 to 60 resumes in a working day. Literal keyword screening can miss candidates who describe relevant experience with different wording, while copied skill terms can make an unsuitable resume appear relevant. I will build a decision-support prototype that helps the recruiter prioritise manual review without making hiring or rejection decisions. Bulk processing, ATS integration and automatic rejection are out of scope.
+The main user is Mei, a junior recruiter with no specialist AI knowledge. She
+pastes a Junior Data Analyst job description and a resume into a Streamlit
+page. The tool returns a score, a MATCH, NO_MATCH or MANUAL_REVIEW label, and
+short lists of strengths, gaps and evidence. Unclear cases are sent to manual
+review.
 
-## 3 Primary user and domain
+## Approach
 
-The primary user is Mei, a junior technology recruiter who reviews resumes using standard office software and has no specialist AI knowledge. She uses the system after receiving applications for a Junior Data Analyst role. The output helps her decide which resume to examine next and which cases need closer human review. The domain is corporate recruitment and human resources.
+I compare two methods. The first is a keyword baseline based on a fixed list of
+skills. The second uses GPT-4.1-mini through OpenRouter for semantic comparison.
+Before the model call, Python code removes a likely name, email address and
+phone number. The model returns a fixed structure that the program validates.
+I did not use RAG or an agent because the task only compares two supplied texts.
 
-## 4 Why AI and which kind
+I built the interface, baseline, redaction, prompt, dataset and evaluation code.
+I rent the model call through OpenRouter. One sample call cost about
+US$0.00027, so using a hosted model was more practical than training my own.
 
-My non-AI baseline counts overlaps between a fixed list of skills in the job description and resume. This is transparent but cannot reliably interpret synonyms, negation or whether a listed skill is supported by experience. I use one rented foundation model, `openai/gpt-4.1-mini`, through OpenRouter with a structured prompt and validated output schema. Deterministic code removes common direct identifiers and calculates the keyword baseline. I do not use RAG or an agent because the task compares two supplied texts and needs neither external documents nor a multi-step tool loop.
+## Data and success measure
 
-## 5 Proposed approach and build versus buy
+I generated 60 synthetic resume and job-description pairs for one Junior Data
+Analyst role. Twenty were used for development and 40 were kept for testing.
+The test set contains equal numbers of MATCH and NO_MATCH cases. The main target
+is at least 75% strict accuracy. MANUAL_REVIEW counts as incorrect for this
+metric. I also report qualified-candidate recall and manual-review rate.
 
-I own the Streamlit interface, Python orchestration, redaction rules, keyword baseline, prompt, abstention thresholds, synthetic dataset and evaluation scripts. I rent model inference through OpenRouter. A representative request used 383 input tokens and 71 output tokens and cost approximately US$0.00027. This makes hosted inference cheaper and faster to deploy than training or serving a model for this small prototype. Streamlit is code rather than low-code; I chose it because one Python application is sufficient for the required demonstration.
+## Scope and risks
 
-## 6 Data
-
-I generated 60 synthetic resume and job-description pairs for one Junior Data Analyst role. Twenty cases form the development set and 40 form a held-out test set. The test set is balanced between `MATCH` and `NO_MATCH` and includes paraphrases, missing evidence, keyword stuffing and a prompt-injection case. Labels are fixed by scenario rules before either system runs. The generation script and CSV are committed so the dataset is reproducible. No real applicant data is required or redistributed.
-
-## 7 Success metric and evaluation
-
-The primary metric is strict accuracy, where `MANUAL_REVIEW` is counted as not automatically correct. I compare the LLM with a keyword baseline and a majority-class baseline on the same 40 held-out cases. I also report qualified-candidate recall, manual-review rate and accuracy on cases where the system gives a definite answer. The provisional success target is at least 75% strict accuracy and no direct `NO_MATCH` decision for a ground-truth qualified case.
-
-## 8 Risks limitations and responsible use
-
-- **Personal data exposure:** common names, email addresses and phone numbers are removed locally before the API call; the demonstration uses only synthetic data.
-- **Qualified candidate ranked too low:** ambiguous scores return `MANUAL_REVIEW`, and the interface prohibits automatic rejection.
-- **Unsupported model claims:** every result contains short evidence grounded in the resume.
-- **Keyword or prompt manipulation:** the prompt treats both documents as untrusted data, and the test set includes keyword-stuffed and instruction-injection cases.
-- **Bias or unfair inference:** the prompt prohibits protected-attribute inference, but the small synthetic test cannot establish real-world fairness.
-
-The intended use is classroom demonstration and first-pass review assistance. The explicit non-use is automated hiring, rejection, ranking of real applicants without human confirmation, or inference of protected characteristics.
-
-## 9 Smallest first version
-
-The smallest version accepts one pasted job description and one pasted resume, removes common direct identifiers, makes one structured model call and displays a score, a decision-support label, strengths, gaps and supporting evidence. It works when both the keyword baseline and AI comparison run from the interface and reproduce the documented result format on synthetic inputs.
-
+The first version accepts pasted text only. It excludes PDF parsing, bulk
+processing, ATS integration and automatic rejection. The main risks are privacy
+leaks, unfair scoring and unsupported model claims. I reduce these risks through
+local redaction, evidence display and human review. These controls are not
+strong enough for real hiring, so the project is only for coursework and
+demonstration.
