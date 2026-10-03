@@ -175,6 +175,5 @@ shown to avoid presenting the observed result as if it had been the only target.
 
 - [`docs/problem_statement.md`](docs/problem_statement.md) - final problem statement
 - [`docs/analysis.md`](docs/analysis.md) - final report and outcome critique
-- [`docs/demo_script.md`](docs/demo_script.md) - suggested five-minute recording plan
 - [`data/README.md`](data/README.md) - dataset explainer
 - [`results/README.md`](results/README.md) - evaluation explainer
