@@ -7,6 +7,20 @@ with one structured foundation-model call routed through OpenRouter. It helps a
 human reviewer compare one job description with one resume; it does not make
 hiring or rejection decisions.
 
+## Product overview
+
+**Persona.** Mei is a junior recruiter at a technology company. She reviews 40
+to 60 resumes in a working day, uses standard office software, and has no
+specialist AI knowledge. She needs a concise explanation of what matched, what
+is missing, and which cases require closer human review.
+
+**Inputs.** One pasted job description and one pasted resume. The demonstration
+uses synthetic resume data only.
+
+**Outputs.** A score from 0 to 100, a `MATCH`, `NO_MATCH`, or `MANUAL_REVIEW`
+label, plus short strengths, gaps, and resume-grounded evidence. The keyword
+baseline separately displays matched and missing skills.
+
 ## Headline result
 
 | System | Strict accuracy | Qualified recall | Manual-review rate |
@@ -37,6 +51,32 @@ demonstration.
 - automated tests for the baseline and redaction logic
 - deterministic synthetic development and test cases
 - reproducible evaluation metrics and CSV outputs
+
+## Product architecture
+
+```mermaid
+flowchart LR
+    A[Job description] --> C[Streamlit interface]
+    B[Resume] --> C
+    C --> D[Local PII redaction]
+    C --> E[Keyword baseline]
+    D --> F[Structured prompt]
+    F --> G[GPT-4.1-mini via OpenRouter]
+    E --> H[Baseline score and skills]
+    G --> I[Validated score label strengths gaps evidence]
+    I --> J{Confidence band}
+    J -->|70 to 100| K[Match]
+    J -->|50 to 69| L[Manual review]
+    J -->|0 to 49| M[No match]
+    H --> N[Human reviewer]
+    K --> N
+    L --> N
+    M --> N
+```
+
+The model compares supplied text only. No external retrieval or autonomous tool
+loop is used. Deterministic code handles redaction, the baseline, validation,
+thresholds, and evaluation.
 
 ## Quick start
 
@@ -93,6 +133,20 @@ synthetic test cases, the LLM matcher achieved 75% strict accuracy versus 25% fo
 the keyword baseline and 50% for the majority-class baseline. These figures are
 course evidence only and do not establish real-world hiring validity.
 
+## Metrics targeted and reached
+
+| Metric | Target | Reached | Interpretation |
+|---|---:|---:|---|
+| Strict accuracy | At least 75% in the final scoped plan | 75% | Target met on the synthetic test |
+| Initial proposal accuracy | At least 82% | 75% | Initial stretch target not met |
+| Direct false rejection of qualified cases | 0 | 0 | Three uncertain qualified cases went to manual review |
+| Qualified-candidate recall | Report transparently | 85% | 17 of 20 received a direct match |
+| Manual-review rate | Report transparently | 25% | 10 of 40 cases required a person |
+
+The initial 82% proposal target was set before the dataset and abstention policy
+were finalised. The final scoped target was reduced to 75%. Both targets are
+shown to avoid presenting the observed result as if it had been the only target.
+
 ## Current limits
 
 - The baseline recognizes only the fixed skill vocabulary in `baseline.py`.
@@ -110,7 +164,17 @@ course evidence only and do not establish real-world hiring validity.
 - `generate_dataset.py` - deterministic synthetic data generator
 - `evaluate.py` - baseline and LLM evaluation
 - `data/cases.csv` - 20 development and 40 held-out test cases
+- `data/README.md` - data scope, schema, generation and limitations
 - `results/` - predictions, metrics and evaluation report
+- `results/README.md` - evaluation design, metric definitions and commands
 - `docs/` - final problem statement, analysis and demo script
 - `tests/` - automated checks for baseline, metrics and redaction
 - `prompt.txt` - versioned system prompt
+
+## Submission documents
+
+- [`docs/problem_statement.md`](docs/problem_statement.md) - final problem statement
+- [`docs/analysis.md`](docs/analysis.md) - final report and outcome critique
+- [`docs/demo_script.md`](docs/demo_script.md) - suggested five-minute recording plan
+- [`data/README.md`](data/README.md) - dataset explainer
+- [`results/README.md`](results/README.md) - evaluation explainer
