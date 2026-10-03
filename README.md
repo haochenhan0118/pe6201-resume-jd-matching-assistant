@@ -172,7 +172,5 @@ shown to avoid presenting the observed result as if it had been the only target.
 - `prompt.txt` - versioned system prompt
 
 ## Submission documents
-
-- [`docs/PE6201_Final_Written_Submission_Han_Haochen.docx`](docs/PE6201_Final_Written_Submission_Han_Haochen.docx) - final 1,141-word written submission
 - [`data/README.md`](data/README.md) - dataset explainer
 - [`results/README.md`](results/README.md) - evaluation explainer
